@@ -1,0 +1,10 @@
+##Ignore IDE files 
+.idea/
+*.iml
+
+#Project files
+*.class
+*.mvn
+*.aws
+
+
