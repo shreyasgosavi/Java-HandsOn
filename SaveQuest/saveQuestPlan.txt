@@ -1,0 +1,55 @@
+SaveQuest: Where Your Progress Becomes Legendary.
+
+Plan:
+
+	1. Basic Math Game
+	2. It will have levels each containing 5 questions.
+	3. Each correct answer awards 10 XP. Completing a level grants an additional 50 XP.
+	4. You can get it wrong up to 3 times before the game ends.
+	5. Player's best score will be saved.
+	6. The player can save their game progress before exiting and continue from where they left off.
+	7. Before beginning player-id will be taken to track their progress.
+	8. Players details will be saved in a file.
+
+
+Game working-flow:
+
+	1. Login-like page where only player-ID will be taken.
+	2. If player's earlier progress is saved then prompt message will be there if they want to continue or start with 	fresh game.
+	3. Question saga will begin.
+
+Players details:
+	1. Player ID
+	2. Best Score
+	3. Max level reached
+	4. Last progress if present
+	
+Game (groundplay details):
+	1. Life Count
+	2. Score
+	3. Current Level
+	4. Questions count of current level
+	5. Current Player Details
+
+Code level details:
+	1. Create Class Player and Game interface with above mentioned details.
+	2. Create one game implementation
+		a. While initializing create HashMap containg players details
+		b. Let player enter their ID
+		c. ID player details not present in HashMap then add its entry.
+		d. If present get the details and continue where left if saved earlier at the middle.
+		e. Start the game
+		
+		
+	
+
+
+
+
+
+
+
+
+
+
+
