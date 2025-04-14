@@ -61,7 +61,11 @@ class DiamondPattern {
         }
 
         if (firstHalf) {
-            spaceBetween += 2;
+            if(aASCII == 'A') {
+                spaceBetween += 1;
+            }
+            else
+                spaceBetween += 2;
             gap--;
             aASCII++;
         } else {
@@ -75,7 +79,7 @@ class DiamondPattern {
     public static void main(String[] args) {
 
         DiamondPattern diamondPattern = new DiamondPattern();
-        List<String> string = diamondPattern.printToList('D');
+        List<String> string = diamondPattern.printToList('E');
 
         System.out.println(string);
     }
