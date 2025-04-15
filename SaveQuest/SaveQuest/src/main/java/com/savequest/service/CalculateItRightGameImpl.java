@@ -14,13 +14,27 @@ public class CalculateItRightGameImpl implements CalculateItRightGame{
 
     private Player player;
     private MathGame mathGame;
-
     private HashMap<String,Player> playersList = new HashMap<>();
 
-//    CalculateItRightGameImpl(){
-//
-//        //logic that will set the playersList from some file
-//    }
+    private File gameData;
+    CalculateItRightGameImpl(){
+
+        //logic that will set the playersList from some file
+        String userHome = System.getProperty("user.home");
+        try {
+            gameData = new File(userHome,"gameData.dat");
+            ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(gameData));
+            playersList = (HashMap<String, Player>) objectInputStream.readObject();
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }catch (Exception e){
+            System.out.println("Exception occurred");
+            e.printStackTrace();
+        }
+    }
 
     public void handleExistingPlayer(String playerID, BufferedReader bufferedInputStream) throws IOException {
 
@@ -136,6 +150,7 @@ public class CalculateItRightGameImpl implements CalculateItRightGame{
 
                 System.out.println("You can save the game by entering SAVE in the answer");
                 System.out.println("Question number "+(this.mathGame.getLevelQuestion()));
+
                 int ans = this.generateQuestion();
 
                 String saveGame="";
