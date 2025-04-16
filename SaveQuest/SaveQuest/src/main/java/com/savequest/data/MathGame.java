@@ -1,6 +1,8 @@
 package com.savequest.data;
 
-public class MathGame {
+import java.io.Serializable;
+
+public class MathGame implements Serializable {
 
     private int lifeCount=3;
     private int currentScore;

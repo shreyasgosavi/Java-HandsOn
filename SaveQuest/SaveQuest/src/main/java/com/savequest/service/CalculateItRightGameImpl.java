@@ -17,14 +17,18 @@ public class CalculateItRightGameImpl implements CalculateItRightGame{
     private HashMap<String,Player> playersList = new HashMap<>();
 
     private File gameData;
-    CalculateItRightGameImpl(){
+    public CalculateItRightGameImpl(){
 
         //logic that will set the playersList from some file
         String userHome = System.getProperty("user.home");
         try {
             gameData = new File(userHome,"gameData.dat");
-            ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(gameData));
-            playersList = (HashMap<String, Player>) objectInputStream.readObject();
+            gameData.createNewFile();
+
+            if(gameData.length() != 0) {
+                ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(gameData));
+                playersList = (HashMap<String, Player>) objectInputStream.readObject();
+            }
 
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -88,6 +92,7 @@ public class CalculateItRightGameImpl implements CalculateItRightGame{
                     this.player.setPreviouslySavedGame(null);
                     playAgain = bufferedInputStream.readLine().equalsIgnoreCase("Y");
                     System.out.println(playAgain);
+                    playersList.put(this.player.getPlayerId(), this.player);
                 }
                 else if(returnValue == 2){
                     System.out.println("User Details saved successfully");
@@ -102,6 +107,10 @@ public class CalculateItRightGameImpl implements CalculateItRightGame{
                     System.out.println("Return value :: "+returnValue);
                     playAgain=false;
                 }
+
+                ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(gameData));
+                objectOutputStream.writeObject(playersList);
+
             }
 
 
@@ -118,6 +127,12 @@ public class CalculateItRightGameImpl implements CalculateItRightGame{
         this.player.setPreviouslySavedGame(this.mathGame);
         this.player.setSavedGame(true);
         playersList.put(this.player.getPlayerId(), this.player);
+
+        try(ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(gameData))){
+            objectOutputStream.writeObject(this.playersList);
+        }catch(Exception e){
+
+        }
     }
 
     public void levelUP(){
@@ -138,15 +153,23 @@ public class CalculateItRightGameImpl implements CalculateItRightGame{
 
         if(this.mathGame.getCurrentScore() > 0){
             System.out.println("Continuing where you left-earlier");
+            System.out.println("Score :: "+this.mathGame.getCurrentScore());
+            System.out.println("Level :: "+this.mathGame.getCurrentLevel());
         }else{
             System.out.println("Let's begin");
+            System.out.println("Player "+this.player.getPlayerId());
+            System.out.println("Best Score "+this.player.getBestScore());
+            System.out.println("Maximum level reached "+this.player.getMaxLevelReached());
+
         }
 
         while(this.mathGame.getLifeCount() > 0) {
 
             System.out.println("Current Level :: "+(this.mathGame.getCurrentLevel()));
 
-            for (int i = this.mathGame.getLevelQuestion(); i < 6; i++) {
+            int i = this.mathGame.getLevelQuestion();
+            while(i<6){
+//            for (int i = this.mathGame.getLevelQuestion(); i < 6; i++) {
 
                 System.out.println("You can save the game by entering SAVE in the answer");
                 System.out.println("Question number "+(this.mathGame.getLevelQuestion()));
@@ -159,21 +182,18 @@ public class CalculateItRightGameImpl implements CalculateItRightGame{
                 try {
                     inputLine = bufferedReader.readLine();
                     saveGame = inputLine;
+
                     if (saveGame.length() > 0 && saveGame.equals("SAVE")) {
                         this.saveGame();
                         return 2;
                     }
-
                     int userAnswer = Integer.parseInt(inputLine);
-                    if(this.validateAnswer(ans, userAnswer)){
-                        System.out.println("GAME OVER !!");
-                        return 1;
-                    }
-
+                    this.validateAnswer(ans, userAnswer);
+                    i++;
                 }catch(NumberFormatException numberFormatException){
                     System.out.println("Invalid input. Please enter a number or 'SAVE'.");
-                    numberFormatException.printStackTrace();
-                    continue;
+//                    continue;
+//                    numberFormatException.printStackTrace();
                 }
                 catch(Exception e){
                     e.printStackTrace();
@@ -182,13 +202,13 @@ public class CalculateItRightGameImpl implements CalculateItRightGame{
 
             this.levelUP();
 
-            System.out.println("Congratulations you have moved to level :: " + (this.mathGame.getCurrentLevel()+1 )+ "!! Press any key to continue");
+            System.out.println("Congratulations you have moved to level :: " + (this.mathGame.getCurrentLevel())+ "!! Press any key to continue");
             System.out.println("Life count :: "+this.mathGame.getLifeCount());
             bufferedReader.readLine();
 
         }
 
-        return -1;
+        return 1;
     }
 
     @Override
@@ -218,7 +238,7 @@ public class CalculateItRightGameImpl implements CalculateItRightGame{
     }
 
     @Override
-    public boolean validateAnswer(int ans,int userAnswer) {
+    public void validateAnswer(int ans,int userAnswer) {
 
         if(ans == userAnswer){
             System.out.println("CORRECT ANSWER !!!");
@@ -235,9 +255,9 @@ public class CalculateItRightGameImpl implements CalculateItRightGame{
         System.out.println("Score is :: "+this.mathGame.getCurrentScore());
         System.out.println("Life Count :: "+this.mathGame.getLifeCount());
 
-        if(this.mathGame.getLifeCount()==0){
-            return true;
-        }
-        return false;
+//        if(this.mathGame.getLifeCount()==0){
+//            return true;
+//        }
+//        return false;
     }
 }

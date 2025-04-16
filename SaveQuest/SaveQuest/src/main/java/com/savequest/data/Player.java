@@ -1,6 +1,8 @@
 package com.savequest.data;
 
-public class Player {
+import java.io.Serializable;
+
+public class Player implements Serializable {
 
     private String playerId;
     private long bestScore;
