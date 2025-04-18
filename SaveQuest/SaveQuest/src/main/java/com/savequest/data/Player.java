@@ -6,7 +6,7 @@ public class Player implements Serializable {
 
     private String playerId;
     private long bestScore;
-    private int maxLevelReached;
+    private int maxLevelReached=1;
     private boolean savedGame;
     private MathGame previouslySavedGame;
 

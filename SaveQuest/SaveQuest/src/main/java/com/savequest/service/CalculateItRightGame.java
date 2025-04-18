@@ -15,6 +15,14 @@ public interface CalculateItRightGame {
     void enterPlayerId();
     int startTheGame(BufferedReader bufferedReader) throws IOException;
     int generateQuestion();
-    void validateAnswer(int ans, int userAns);
+    boolean validateAnswer(int ans, int userAns);
 
+    void createNewPlayer(String playerID);
+
+    void handleExistingPlayer(String playerID, BufferedReader bufferedInputStream) throws IOException;
+
+    void saveGame();
+
+    void levelUP();
+    void updateScore(boolean checkAnswer);
 }
