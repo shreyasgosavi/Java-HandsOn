@@ -25,4 +25,6 @@ public interface CalculateItRightGame {
 
     void levelUP();
     void updateScore(boolean checkAnswer);
+
+    int takeUserAnswer(BufferedReader bufferedReader);
 }

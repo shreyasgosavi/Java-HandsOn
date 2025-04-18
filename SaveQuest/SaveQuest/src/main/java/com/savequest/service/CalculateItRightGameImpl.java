@@ -2,15 +2,18 @@ package com.savequest.service;
 
 import com.savequest.data.MathGame;
 import com.savequest.data.Player;
-import com.sun.security.jgss.GSSUtil;
 
 import java.io.*;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Objects;
 import java.util.Random;
 
 public class CalculateItRightGameImpl implements CalculateItRightGame {
+
+    private final Random randomNumberGenerator = new Random();
+
+    int correctAnswer=0;
+    boolean checkAnswer=true;
 
     private Player player;
     private MathGame mathGame;
@@ -21,20 +24,23 @@ public class CalculateItRightGameImpl implements CalculateItRightGame {
     public CalculateItRightGameImpl() {
 
         //logic that will set the playersList from some file
+
         String userHome = System.getProperty("user.home");
-        try {
+        try (ObjectInputStream objectInputStream =new ObjectInputStream(new FileInputStream(gameData))){
             gameData = new File(userHome, "gameData.dat");
-            gameData.createNewFile();
+
+            boolean isFilePresent = gameData.createNewFile();
+
+            if(isFilePresent){
+                System.out.println("File gameData.dat created at "+gameData.getParent());
+            }
 
             if (gameData.length() != 0) {
-                ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(gameData));
                 playersList = (HashMap<String, Player>) objectInputStream.readObject();
             }
 
         } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
+            System.out.println("Unable to create file "+gameData.getName()+" at path "+gameData.getParent());
         } catch (Exception e) {
             System.out.println("Exception occurred");
             e.printStackTrace();
@@ -63,6 +69,20 @@ public class CalculateItRightGameImpl implements CalculateItRightGame {
         this.player = new Player();
         this.player.setPlayerId(playerID);
         this.mathGame = new MathGame();
+    }
+
+    public void welcomeMessage(){
+        //Welcome message based on game-status
+        if (this.mathGame.getCurrentScore() > 0) {
+            System.out.println("Continuing where you left-earlier");
+            System.out.println("Score :: " + this.mathGame.getCurrentScore());
+            System.out.println("Level :: " + this.mathGame.getCurrentLevel());
+        } else {
+            System.out.println("Let's begin");
+            System.out.println("Player " + this.player.getPlayerId());
+            System.out.println("Best Score " + this.player.getBestScore());
+            System.out.println("Maximum level reached " + this.player.getMaxLevelReached());
+        }
     }
 
     @Override
@@ -140,25 +160,44 @@ public class CalculateItRightGameImpl implements CalculateItRightGame {
     }
 
     @Override
-    public int startTheGame(BufferedReader bufferedReader) throws IOException {
+    public int takeUserAnswer(BufferedReader bufferedReader){
+        String inputLine;
 
-        //Welcome message based on game-status
-        if (this.mathGame.getCurrentScore() > 0) {
-            System.out.println("Continuing where you left-earlier");
-            System.out.println("Score :: " + this.mathGame.getCurrentScore());
-            System.out.println("Level :: " + this.mathGame.getCurrentLevel());
-        } else {
-            System.out.println("Let's begin");
-            System.out.println("Player " + this.player.getPlayerId());
-            System.out.println("Best Score " + this.player.getBestScore());
-            System.out.println("Maximum level reached " + this.player.getMaxLevelReached());
+        try {
+            inputLine = bufferedReader.readLine();
+            if (inputLine.equals("SAVE")) {
+                this.saveGame();
+                return 2;
+            }
+
+            int userAnswer = Integer.parseInt(inputLine);
+            checkAnswer = this.validateAnswer(correctAnswer, userAnswer);
+
+            this.updateScore(checkAnswer);
+
+            if (this.mathGame.getLevelQuestion() > 1 && (this.mathGame.getLevelQuestion() - 1) % 5 == 0) {
+                this.levelUP();
+                System.out.println("Congratulations you have moved to level :: " + (this.mathGame.getCurrentLevel()) + "!!");
+                System.out.println("Press any key to continue");
+                System.out.println("Life count :: " + this.mathGame.getLifeCount());
+                String ignored = bufferedReader.readLine();
+            }
+
+        } catch (NumberFormatException numberFormatException) {
+            System.out.println("Invalid input. Please enter a number or 'SAVE'.");
+            checkAnswer = false;
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        return 0;
+    }
 
-//        while(this.mathGame.getLifeCount() > 0) {
+    @Override
+    public int startTheGame(BufferedReader bufferedReader) {
+
+        this.welcomeMessage();
 
         System.out.println("Current Level :: " + (this.mathGame.getCurrentLevel()));
-        int correctAnswer=0;
-        boolean checkAnswer=true;
 
         do {
 
@@ -170,33 +209,11 @@ public class CalculateItRightGameImpl implements CalculateItRightGame {
             else{
                 System.out.println("Try again !!");
             }
-
-            String inputLine = "";
-
-            try {
-                inputLine = bufferedReader.readLine();
-                if (inputLine.length() > 0 && inputLine.equals("SAVE")) {
-                    this.saveGame();
-                    return 2;
-                }
-
-                int userAnswer = Integer.parseInt(inputLine);
-                checkAnswer = this.validateAnswer(correctAnswer, userAnswer);
-                this.updateScore(checkAnswer);
-
-                if (this.mathGame.getLevelQuestion() > 1 && (this.mathGame.getLevelQuestion() - 1) % 5 == 0) {
-                    this.levelUP();
-                    System.out.println("Congratulations you have moved to level :: " + (this.mathGame.getCurrentLevel()) + "!!");
-                    System.out.println("Press any key to continue");
-                    System.out.println("Life count :: " + this.mathGame.getLifeCount());
-                    bufferedReader.readLine();
-                }
-            } catch (NumberFormatException numberFormatException) {
-                System.out.println("Invalid input. Please enter a number or 'SAVE'.");
-                checkAnswer = false;
-            } catch (Exception e) {
-                e.printStackTrace();
+            int returnType = this.takeUserAnswer(bufferedReader);
+            if(returnType == 2){
+                return returnType;
             }
+
         } while (this.mathGame.getLifeCount() > 0);
 
         this.saveGame();
@@ -209,10 +226,9 @@ public class CalculateItRightGameImpl implements CalculateItRightGame {
 
         String[] operationArray = {"+", "-", "x"};
 
-        Random random = new Random();
-        int num1 = random.nextInt(50);
-        int num2 = random.nextInt(50);
-        int operation = random.nextInt(3);
+        int num1 = this.randomNumberGenerator.nextInt(50);
+        int num2 = this.randomNumberGenerator.nextInt(50);
+        int operation = this.randomNumberGenerator.nextInt(3);
 
         System.out.println("What is " + num1 + " " + operationArray[operation] + " " + num2);
         switch (operation) {
@@ -234,11 +250,7 @@ public class CalculateItRightGameImpl implements CalculateItRightGame {
 
     @Override
     public boolean validateAnswer(int ans, int userAnswer) {
-
-        if (ans == userAnswer) {
-            return true;
-        }
-        return false;
+        return ans == userAnswer;
     }
 
     @Override
@@ -254,7 +266,6 @@ public class CalculateItRightGameImpl implements CalculateItRightGame {
         } else {
             System.out.println("INCORRECT ANSWER !!!");
             this.mathGame.setLifeCount(this.mathGame.getLifeCount() - 1);
-//            System.out.println("CORRECT ANSWER IS " + correctAns);
         }
         System.out.println("Score is :: " + this.mathGame.getCurrentScore());
         System.out.println("Life Count :: " + this.mathGame.getLifeCount());
