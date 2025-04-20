@@ -26,8 +26,9 @@ public class CalculateItRightGameImpl implements CalculateItRightGame {
         //logic that will set the playersList from some file
 
         String userHome = System.getProperty("user.home");
+        gameData = new File(userHome, "gameData.dat");
         try (ObjectInputStream objectInputStream =new ObjectInputStream(new FileInputStream(gameData))){
-            gameData = new File(userHome, "gameData.dat");
+
 
             boolean isFilePresent = gameData.createNewFile();
 
@@ -112,8 +113,6 @@ public class CalculateItRightGameImpl implements CalculateItRightGame {
 
                 } else if (returnValue == 2) {
                     System.out.println("User Details saved successfully");
-                    System.out.println("Final Player details");
-                    System.out.println(this.player);
                     playAgain = false;
                 }
             }
@@ -131,11 +130,16 @@ public class CalculateItRightGameImpl implements CalculateItRightGame {
     public void saveGame() {
 
         System.out.println("SAVING Players Details");
+
         if(this.mathGame.getLifeCount()>0) {
             this.player.setPreviouslySavedGame(this.mathGame);
             this.player.setSavedGame(true);
         }
-
+        else{
+            this.player.setPreviouslySavedGame(null);
+            this.player.setSavedGame(false);
+        }
+        System.out.println("Details :: "+this.player);
         playersList.put(this.player.getPlayerId(), this.player);
 
         try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(gameData))) {
